@@ -24,18 +24,13 @@
 extern char getterName[NGETTER][BUFSIZ];
 extern void (*getterFunction[NGETTER])(int);
 
-extern void getVersion(int fd);	//return jasm version
-extern void getCopyright(int fd);	//return copyng license
+extern void getVersion(int fd); //return jasm version
+extern void getCopyright(int fd); //return copyng license
 extern void getHostname(int fd);
 extern void getKernelName(int fd);
 extern void getKernelRelease(int fd);
 extern void getKernelVersion(int fd);
 extern void getMachine(int fd);
-
 extern void getGetter(int fd);
-
-
-
-
 
 #endif

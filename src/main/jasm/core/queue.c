@@ -21,74 +21,85 @@
 #include <string.h>
 #include <errno.h>
 
-#include "queue.h"
+#include "modules.h" //running_module definition
+#include "queue.h" //main definitions
+#include "miscellaneous.h" //misc funct
 
 void print_queue(struct queue *head)
 {
-  if(head==NULL) {
-    perror("[DEV] head is NULL!");
-    return;
-  }
+        if(head==NULL) {
+                perror("[DEV] head is NULL!");
+                return;
+        }
 
-  while(head!=NULL) {
-    printf("# %s\n", head->string);
-    head=head->next;
-  }
+        while(head!=NULL) {
+                printf("# %s\n", head->string);
+                head=head->next;
+        }
 }
 
 /*
  *  Adds an element to the queue
  *  returns 0 if done successfully
  */
-int add_queue(struct queue **head, char temp[BUFSIZ])
+int add_queue(struct queue **head, struct running_module *temp)
 {
 
-  if((*head)==NULL) { //empty queue
+        if((*head)==NULL) { //empty queue
 
-    (*head)=(struct queue *)malloc(sizeof(struct queue));
-    if(*head==NULL) {
-      perror("[DEV] memory-allocation failed! {malloc()}");
-      return 1;
-    }
-    strcpy((*head)->string, temp);
-    (*head)->next=NULL;
+                (*head)=(struct queue *)malloc(sizeof(struct queue));
+                if(*head==NULL) {
+                        log_error("[DEV] memory-allocation failed! {malloc()}");
+                        return 1;
+                }
+                (*head)->info=temp;
+                (*head)->next=NULL;
 
-  } else {  //not empty queue
+        } else { //not empty queue
 
-    struct queue *aus=(*head);
-    while(aus->next!=NULL)
-      aus=aus->next;
+                struct queue *aus=(*head);
+                while(aus->next!=NULL)
+                        aus=aus->next;
 
-    aus->next=(struct queue *)malloc(sizeof(struct queue));
-    aus=aus->next;
+                aus->next=(struct queue *)malloc(sizeof(struct queue));
+                aus=aus->next;
 
-    if(aus==NULL) {
-      perror("malloc fail");
-      return 1;
-    }
-    strcpy(aus->string, temp);
-    aus->next=NULL;
-  }
-  return 0;
+                if(aus==NULL) {
+                        log_error("malloc fail");
+                        return 1;
+                }
+                aus->info=temp;
+                aus->next=NULL;
+        }
+        return 0;
 }
 
 /*
  *  deletes queue element
  *  Returns msg from deleted element
  */
-char *del_queue(struct queue **head)
+struct running_module *del_queue(struct queue **head)
 {
-  static char temp[BUFSIZ]="null";
+        static struct running_module *temp;
+        /*{
+           .head=NULL,
+           .fd=-1,
+           .sec=-1
+           };*/
+        temp->head=NULL;
+        temp->fd=-1;
+        temp->sec=-1;
 
-  if((*head)==NULL) {
-    perror("[DEV] head is NULL!");
-    return temp;
-  }
+        if((*head)==NULL) {
+                log_error("[DEV] head is NULL!");
+                return temp;
+        }
 
-  struct queue *aus=(*head);
-  (*head)=(*head)->next;
-  strcpy(temp, aus->string);
+        struct queue *aus=(*head);
+        (*head)=(*head)->next;
+        temp = aus->info;
 
-  free(aus);
-  return temp;
+        free(aus);
+
+        return temp;
 }

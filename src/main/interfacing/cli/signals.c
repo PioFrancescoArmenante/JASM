@@ -16,17 +16,27 @@
 * You should have received a copy of the GNU General Public License
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
-#ifndef _QUEUE_H
-#define _QUEUE_H
+#include <stdio.h>
+#include <stdlib.h>
+#include <signal.h>
+#include <unistd.h>
+#include <sys/types.h>
 
-struct queue { //queue struct
-        struct running_module *info;
-        struct queue *next;
-        char *string;
-};
+#include "miscellaneous.h"
 
-extern void print_queue(struct queue *head);
-extern int add_queue(struct queue **head, struct running_module* temp);
-extern struct running_module *del_queue(struct queue **head);
+static void signal_handler(int sigx)
+{
+        printf("* Recieved signal: %d\n", sigx);
+}
 
-#endif //_QUEUE_H
+void signal_catcher(void)
+{
+        struct sigaction act;
+
+        act.sa_handler=signal_handler;
+        act.sa_flags=0;
+
+        sigaction(SIGSTOP, &act, 0);
+        sigaction(SIGQUIT, &act, 0);
+        sigaction(SIGINT, &act, 0);
+}

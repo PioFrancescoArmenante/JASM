@@ -17,8 +17,59 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 #include <stdio.h>
+#include <unistd.h>
+#include <time.h>
+#include <string.h>
+
+char buildtime[BUFSIZ]="null";
+char debugstr[BUFSIZ]="null";
+
+char color[4][BUFSIZ]={
+        "\033[32m", //green
+        "\033[31m", //red
+        "\033[33m", //yellow
+        "\033[34m" //blue
+};
 
 void log_string(const char *message)
 {
-  printf("# Sys: %s\n", message);
+        printf("# Sys: %s\n", message);
+}
+
+char *getTime()
+{
+        time_t curtime;
+        struct tm *loctime;
+        static char *ret;
+
+        curtime=time(NULL);
+        loctime=localtime(&curtime);
+        ret=asctime(loctime);
+        ret[24]='\0';
+
+        return ret;
+}
+
+void check_debug()
+{
+  #ifdef DEBUG
+        strcpy(debugstr,"* You are using JASMCLI *debug* build!");
+  #else
+        strcpy(debugstr,"\0");
+  #endif
+}
+
+void check_release()
+{
+  #ifdef BUILD_DATE_CLI
+        strcpy(buildtime,BUILD_DATE_CLI);
+  #else
+        strcpy("not availible",BUILD_DATE_CLI);
+  #endif
+}
+
+int check_if_file_exists(const char * __fname)
+{
+        if(access(__fname,F_OK)!=-1) return 1;
+        else return 0;
 }

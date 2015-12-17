@@ -16,17 +16,9 @@
 * You should have received a copy of the GNU General Public License
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
-#ifndef _QUEUE_H
-#define _QUEUE_H
+#ifndef SIGNALS_H
+#define SIGNALS_H
 
-struct queue { //queue struct
-        struct running_module *info;
-        struct queue *next;
-        char *string;
-};
+extern void signal_catcher(void); //sighandler
 
-extern void print_queue(struct queue *head);
-extern int add_queue(struct queue **head, struct running_module* temp);
-extern struct running_module *del_queue(struct queue **head);
-
-#endif //_QUEUE_H
+#endif

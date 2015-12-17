@@ -22,113 +22,220 @@
 #include <arpa/inet.h>
 #include <string.h>
 #include <sys/utsname.h>
+#include <errno.h>
+
 #include "getter.h"
 #include "miscellaneous.h"
 
-//all getters bring in queue in the heap mem. what they are going to do
-//send_getter() to send the answer to the client
+char error[BUFSIZ];
+
+//TODO: checks + errno
 
 void getVersion(int fd);
 void getCopyright(int fd);
 void getHostname(int fd);
+void getKernelName(int fd);
+void getKernelRelease(int fd);
+void getKernelVersion(int fd);
+void getMachine(int fd);
 void getGetter(int fd);
 
 char getterName[NGETTER][BUFSIZ]={"Version", "Copyright", "Hostname", "KernelName",
-  "KernelRelease", "KernelVersion", "Machine"};
+                                  "KernelRelease", "KernelVersion", "Machine"};
 
 void (*getterFunction[NGETTER])(int)={getVersion, getCopyright, getHostname,
-  getKernelName, getKernelVersion, getKernelVersion, getMachine};
+                                      getKernelName, getKernelRelease, getKernelVersion, getMachine};
 
 /*
  *  scrive su fd int numero getter e N stringhe nomiGetter
  */
 void getGetter(int fd)
 {
-  int i;
-  int ngetter = NGETTER;
+        int i;
+        int ngetter = NGETTER;
+        int count=0;
 
-  write(fd, &ngetter, sizeof(ngetter));
-  for(i=0; i<NGETTER; i++) {
-    write(fd, getterName[i], BUFSIZ);
-  }
+        write(fd, &ngetter, sizeof(ngetter));
+
+        for(i=0; i<NGETTER; i++) {
+                count = strlen(getterName[i]);
+                //aggiungere check errore nell'invio
+                write(fd, &count, sizeof(count));
+                write(fd, getterName[i], strlen(getterName[i]));
+        }
 }
 
 void getVersion(int fd)
 {
-  write(fd, VERSION, BUFSIZ);
+        int n;
+
+        n = write(fd, VERSION, strlen(VERSION));
+        if(n < 0) {
+                sprintf(error, "[JASM-DAEMON][errno] %s", strerror(errno));
+                log_error("[JASM-DAEMON][getVersion][write()] Error!");
+                log_error(error);
+        } else {
+                if(n < strlen(VERSION)) {
+                        sprintf(error, "[JASM-DAEMON][getVersion][write()] sent %d byte, correct num byte is %zu", n, strlen(VERSION));
+                        log_error(error);
+                } else {
+                        sprintf(error, "[JASM-DAEMON][getVersion][write()] sent %d byte", n);
+                        log_string(error);
+                }
+        }
 }
 
 void getCopyright(int fd)
 {
-  write(fd, COPYRIGHT, BUFSIZ);
+        int n;
+
+        n = write(fd, COPYRIGHT, strlen(COPYRIGHT));
+        if(n < 0) {
+                sprintf(error, "[JASM-DAEMON][errno] %s", strerror(errno));
+                log_error("[JASM-DAEMON][getCopyright][write()] Error!");
+                log_error(error);
+        } else {
+                if(n < strlen(COPYRIGHT)) {
+                        sprintf(error, "[JASM-DAEMON][getCopyright][write()] sent %d byte, correct num byte is %zu", n, strlen(COPYRIGHT));
+                        log_error(error);
+                } else {
+                        sprintf(error, "[JASM-DAEMON][getCopyright][write()] sent %d byte", n);
+                        log_string(error);
+                }
+        }
 }
 
 void getHostname(int fd)
 {
-  struct utsname info;
-  char buf[BUFSIZ];
+        struct utsname info;
+        char buf[BUFSIZ];
 
-  if(uname(&info)==-1) {
-    log_error("getHostname() [uname] failed");
-    return;
-  } else {
-    strcpy(buf, info.nodename);
-    write(fd, buf, BUFSIZ);
-  }
+        if(uname(&info)==-1) {
+                log_error("getHostname() [uname] failed");
+                return;
+        } else {
+                strcpy(buf, info.nodename);
+                int n = write(fd, buf, strlen(buf));
+                if(n < 0) {
+                        sprintf(error, "[JASM-DAEMON][errno] %s", strerror(errno));
+                        log_error("[JASM-DAEMON][getHostname][write()] Error!");
+                        log_error(error);
+                } else {
+                        if(n < strlen(buf)) {
+                                sprintf(error, "[JASM-DAEMON][getHostname][write()] sent %d byte, correct num byte is %zu", n, strlen(buf));
+                                log_error(error);
+                        } else {
+                                sprintf(error, "[JASM-DAEMON][getHostname][write()] sent %d byte", n);
+                                log_string(error);
+                        }
+                }
+        }
 }
 
 void getKernelName(int fd)
 {
-  struct utsname info;
-  char buf[BUFSIZ];
+        struct utsname info;
+        char buf[BUFSIZ];
 
-  if(uname(&info)==-1) {
-    log_error("getKernelName() [uname] failed");
-    return;
-  } else {
-    strcpy(buf, info.sysname);
-    write(fd, buf, BUFSIZ);
-  }
+        if(uname(&info)==-1) {
+                log_error("getKernelName() [uname] failed");
+                return;
+        } else {
+                strcpy(buf, info.sysname);
+                int n = write(fd, buf, strlen(buf));
+                if(n < 0) {
+                        sprintf(error, "[JASM-DAEMON][errno] %s", strerror(errno));
+                        log_error("[JASM-DAEMON][getKernelName][write()] Error!");
+                        log_error(error);
+                } else {
+                        if(n < strlen(buf)) {
+                                sprintf(error, "[JASM-DAEMON][getKernelName][write()] sent %d byte, correct num byte is %zu", n, strlen(buf));
+                                log_error(error);
+                        } else {
+                                sprintf(error, "[JASM-DAEMON][getKernelName][write()] sent %d byte", n);
+                                log_string(error);
+                        }
+                }
+        }
 }
 
 void getKernelRelease(int fd)
 {
-  struct utsname info;
-  char buf[BUFSIZ];
+        struct utsname info;
+        char buf[BUFSIZ];
 
-  if(uname(&info)==-1) {
-    log_error("getKernelRelease() [uname] failed");
-    return;
-  } else {
-    strcpy(buf, info.release);
-    write(fd, buf, BUFSIZ);
-  }
+        if(uname(&info)==-1) {
+                log_error("getKernelRelease() [uname] failed");
+                return;
+        } else {
+                strcpy(buf, info.release);
+                int n = write(fd, buf, strlen(buf));
+                if(n < 0) {
+                        sprintf(error, "[JASM-DAEMON][errno] %s", strerror(errno));
+                        log_error("[JASM-DAEMON][getKernelRelease][write()] Error!");
+                        log_error(error);
+                } else {
+                        if(n < strlen(buf)) {
+                                sprintf(error, "[JASM-DAEMON][getKernelRelease][write()] sent %d byte, correct num byte is %zu", n, strlen(buf));
+                                log_error(error);
+                        } else {
+                                sprintf(error, "[JASM-DAEMON][getKernelRelease][write()] sent %d byte", n);
+                                log_string(error);
+                        }
+                }
+        }
 }
 
 void getKernelVersion(int fd)
 {
-  struct utsname info;
-  char buf[BUFSIZ];
+        struct utsname info;
+        char buf[BUFSIZ];
 
-  if(uname(&info)==-1) {
-    log_error("getKernelVersion() [uname] failed");
-    return;
-  } else {
-    strcpy(buf, info.version);
-    write(fd, buf, BUFSIZ);
-  }
+        if(uname(&info)==-1) {
+                log_error("getKernelVersion() [uname] failed");
+                return;
+        } else {
+                strcpy(buf, info.version);
+                int n = write(fd, buf, strlen(buf));
+                if(n < 0) {
+                        sprintf(error, "[JASM-DAEMON][errno] %s", strerror(errno));
+                        log_error("[JASM-DAEMON][getKernelVersion][write()] Error!");
+                        log_error(error);
+                } else {
+                        if(n < strlen(buf)) {
+                                sprintf(error, "[JASM-DAEMON][getKernelVersion][write()] sent %d byte, correct num byte is %zu", n, strlen(buf));
+                                log_error(error);
+                        } else {
+                                sprintf(error, "[JASM-DAEMON][getKernelVersion][write()] sent %d byte", n);
+                                log_string(error);
+                        }
+                }
+        }
 }
 
 void getMachine(int fd)
 {
-  struct utsname info;
-  char buf[BUFSIZ];
+        struct utsname info;
+        char buf[BUFSIZ];
 
-  if(uname(&info)==-1) {
-    log_error("getMachine() [uname]  failed");
-    return;
-  } else {
-    strcpy(buf, info.machine);
-    write(fd, buf, BUFSIZ);
-  }
+        if(uname(&info)==-1) {
+                log_error("getMachine() [uname]  failed");
+                return;
+        } else {
+                strcpy(buf, info.machine);
+                int n = write(fd, buf, strlen(buf));
+                if(n < 0) {
+                        sprintf(error, "[JASM-DAEMON][errno] %s", strerror(errno));
+                        log_error("[JASM-DAEMON][getMachine][write()] Error!");
+                        log_error(error);
+                } else {
+                        if(n < strlen(buf)) {
+                                sprintf(error, "[JASM-DAEMON][getMachine][write()] sent %d byte, correct num byte is %zu", n, strlen(buf));
+                                log_error(error);
+                        } else {
+                                sprintf(error, "[JASM-DAEMON][getMachine][write()] sent %d byte", n);
+                                log_string(error);
+                        }
+                }
+        }
 }
